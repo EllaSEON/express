@@ -1,0 +1,34 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "오리털 패딩",
+      "description": "따뜻한 겨울 패딩",
+      "price": 49000
+    },
+    {
+      "id": 2,
+      "name": "호피무늬 나시",
+      "description": "개성있는 여름 나시",
+      "price": 7000
+    },
+    {
+      "id": 3,
+      "name": "발열내의",
+      "description": "따뜻한 겨울용 내복",
+      "price": 12000
+    },
+    {
+      "id": 4,
+      "name": "비키니 수영복",
+      "description": "바닷가에서 핫하게 입을 수 있는 수영복",
+      "price": 25000
+    },
+    {
+      "id": 5,
+      "name": "방한용 장갑",
+      "description": "한파에 필수품인 따뜻한 장갑",
+      "price": 7000
+    }
+  ]
+}
