@@ -2,7 +2,8 @@ const express = require("express");
 const fs = require("fs").promises;
 const app = express();
 const PORT = process.env.PORT || 3000; // 환경변수로 포트 관리
-const productsFilePath = "src/db/product.json";
+const productsFilePath = "src/db/products.json";
+const hashtagsFilePath = "src/db/hashtags.json";
 app.use(express.json());
 
 app.get("/", (req, res) => {
@@ -153,6 +154,30 @@ app.delete("/products/:id", async (req, res) => {
 
     await fs.writeFile(productsFilePath, JSON.stringify({ products }));
     res.json(products);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send({ message: "서버 내부 오류" });
+  }
+});
+
+// 해시태그 등록
+app.post("/hashtags", async (req, res) => {
+  try {
+    // 기존 해시태그 목록 읽기
+    const data = await fs.readFile(hashtagsFilePath, "utf8");
+    const hashtags = JSON.parse(data).hashtags; //json 파싱
+
+    const addedHashtag = {
+      id: hashtags.length + 1, // id 생성
+      hashtag_name: req.body.hashtag_name,
+    };
+
+    // 새로운 상품 추가
+    hashtags.push(addedHashtag);
+
+    // 변경된 상품 목록 파일에 저장
+    await fs.writeFile(productsFilePath, JSON.stringify({ hashtags }));
+    res.status(201).json(addedHashtag);
   } catch (err) {
     console.log(err);
     res.status(500).send({ message: "서버 내부 오류" });
