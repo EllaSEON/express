@@ -17,12 +17,31 @@ app.listen(PORT, () => {
 // 상품 업로드
 app.post("/products", async (req, res) => {
   try {
+    // 입력값 검증
+    const { name, description, price } = req.body;
+    if (!name || !description || !price) {
+      return res.status(400).send({ error: "모든 필드를 입력해야합니다." });
+    }
+    if (name.length > 15 || description.length > 50) {
+      return res.status(400).send({ error: "글자수 제한을 초과했습니다." });
+    }
+    if (price > 100000) {
+      return res.status(400).send({ error: "가격 범위를 초과했습니다." });
+    }
+    if (
+      typeof name !== string &&
+      typeof description !== string &&
+      typeof price !== number
+    ) {
+      return res.status(400).send({ error: "잘못된 데이터 타입입니다." });
+    }
+
     // 기존 상품 목록 읽기
     const data = await fs.readFile(productsFilePath, "utf8");
     const products = JSON.parse(data).products; //json 파싱
 
     const addedProduct = {
-      id: products.length + 1,
+      id: products.length + 1, // id 생성
       name: req.body.name,
       description: req.body.description,
       price: req.body.price,
@@ -36,6 +55,7 @@ app.post("/products", async (req, res) => {
     res.status(201).json(addedProduct);
   } catch (err) {
     console.log(err);
+    res.status(500).send({ error: "서버 내부 오류" });
   }
 });
 
@@ -47,7 +67,7 @@ app.get("/products", async (req, res) => {
     res.json(products);
   } catch (err) {
     console.log(err);
-    res.status(500).send("서버 내부 에러");
+    res.status(500).send({ error: "서버 내부 오류" });
   }
 });
 
@@ -72,6 +92,27 @@ app.get("/products/:id", async (req, res) => {
 // 상품 수정
 app.put("/products/:id", async (req, res) => {
   try {
+    // 입력값 검증
+    const { name, description, price } = req.body;
+
+    if (
+      name === undefined &&
+      description === undefined &&
+      price === undefined
+    ) {
+      res.status(400).send({ error: "수정할 값을 1개라도 입력해주세요" });
+    }
+
+    if (
+      (name && name.length > 15) ||
+      (description && description.length > 50)
+    ) {
+      return res.status(400).send({ error: "글자수 제한을 초과했습니다." });
+    }
+    if (price > 100000) {
+      return res.status(400).send({ error: "가격 범위를 초과했습니다." });
+    }
+
     const data = await fs.readFile(productsFilePath, "utf8");
     const products = JSON.parse(data).products; // json 파싱
     //특정 상품 찾기
@@ -89,6 +130,7 @@ app.put("/products/:id", async (req, res) => {
     res.json(products);
   } catch (err) {
     console.log(err);
+    res.status(500).send({ message: "서버 내부 오류" });
   }
 });
 
