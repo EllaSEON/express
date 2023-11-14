@@ -30,9 +30,9 @@ app.post("/products", async (req, res) => {
       return res.status(400).send({ error: "가격 범위를 초과했습니다." });
     }
     if (
-      typeof name !== string &&
-      typeof description !== string &&
-      typeof price !== number
+      typeof name !== "string" &&
+      typeof description !== "string" &&
+      typeof price !== "number"
     ) {
       return res.status(400).send({ error: "잘못된 데이터 타입입니다." });
     }
@@ -163,9 +163,29 @@ app.delete("/products/:id", async (req, res) => {
 // 해시태그 등록
 app.post("/hashtags", async (req, res) => {
   try {
+    const { hashtag_name } = req.body;
+
+    if (!hashtag_name) {
+      return res.status(400).send({ error: "해시태그명을 입력하세요" });
+    }
+
+    if (hashtag_name.length > 15) {
+      return res.status(400).send({ error: "글자수 제한을 초과했습니다." });
+    }
+
+    console.log(typeof hashtag_name);
+    if (typeof hashtag_name !== "string") {
+      return res.status(400).send({ error: "잘못된 데이터 타입입니다." });
+    }
+
     // 기존 해시태그 목록 읽기
     const data = await fs.readFile(hashtagsFilePath, "utf8");
     const hashtags = JSON.parse(data).hashtags; //json 파싱
+
+    // 입력한 해시태그 명과 파일시스템의 해시태그명 중복 확인
+    // const existingHashtag = hashtags.find(
+    //   (item) => item.hashtag_name === hashtag_name
+    // );
 
     const addedHashtag = {
       id: hashtags.length + 1, // id 생성
@@ -176,8 +196,48 @@ app.post("/hashtags", async (req, res) => {
     hashtags.push(addedHashtag);
 
     // 변경된 상품 목록 파일에 저장
-    await fs.writeFile(productsFilePath, JSON.stringify({ hashtags }));
+    await fs.writeFile(hashtagsFilePath, JSON.stringify({ hashtags }));
     res.status(201).json(addedHashtag);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send({ message: "서버 내부 오류" });
+  }
+});
+
+// 해시태그 수정
+app.put("/hashtags/:id", async (req, res) => {
+  try {
+    const { hashtag_name } = req.body;
+
+    if (!hashtag_name) {
+      return res.status(400).send({ error: "해시태그명을 입력하세요" });
+    }
+    if (hashtag_name.length > 15) {
+      return res.status(400).send({ error: "글자수 제한을 초과했습니다." });
+    }
+
+    console.log(typeof hashtag_name);
+    if (typeof hashtag_name !== "string") {
+      return res.status(400).send({ error: "잘못된 데이터 타입입니다." });
+    }
+
+    // 기존 해시태그 목록 읽기
+    const data = await fs.readFile(hashtagsFilePath, "utf8");
+    const hashtags = JSON.parse(data).hashtags; //json 파싱
+
+    // 특정 해시태그 찾기
+    const hashtag = hashtags.find(
+      (hashtag) => hashtag.id === parseInt(req.params.id)
+    );
+
+    if (!hashtag) {
+      return res.status(404).send({ error: "상품 id를 찾을 수 없습니다." });
+    }
+
+    hashtag.hashtag_name = req.body.hashtag_name;
+
+    await fs.writeFile(hashtagsFilePath, JSON.stringify({ hashtags }));
+    res.json(hashtag);
   } catch (err) {
     console.log(err);
     res.status(500).send({ message: "서버 내부 오류" });
