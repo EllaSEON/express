@@ -21,6 +21,13 @@
         { "id": 1, "hashtag_name": "겨울옷" },
         { "id": 3, "hashtag_name": "방한용품" }
       ]
+    },
+    {
+      "id": 4,
+      "name": "나시 원피스",
+      "description": "하늘하늘한 나시 원피스",
+      "price": 7000,
+      "hashtags": [{ "id": 2, "hashtag_name": "여름옷" }]
     }
   ]
 }
