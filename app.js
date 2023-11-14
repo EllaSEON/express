@@ -158,10 +158,15 @@ app.put("/products/:id", async (req, res) => {
     if (!product) {
       return res.status(404).send({ error: "상품 id를 찾을 수 없습니다." });
     }
+
     product.name = req.body.name;
     product.description = req.body.description;
     product.price = req.body.price;
-    await fs.writeFile(productsFilePath, JSON.stringify({ products }));
+
+    await fs.writeFile(
+      productsFilePath,
+      JSON.stringify({ products: products })
+    );
     res.json(products);
   } catch (err) {
     console.log(err);
@@ -186,7 +191,10 @@ app.delete("/products/:id", async (req, res) => {
     const productIndex = products.indexOf(product);
     products.splice(productIndex, 1);
 
-    await fs.writeFile(productsFilePath, JSON.stringify({ products }));
+    await fs.writeFile(
+      productsFilePath,
+      JSON.stringify({ products: products })
+    );
     res.json({ message: "상품이 성공적으로 삭제되었습니다." });
   } catch (err) {
     console.log(err);
