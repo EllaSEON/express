@@ -153,7 +153,7 @@ app.delete("/products/:id", async (req, res) => {
     products.splice(productIndex, 1);
 
     await fs.writeFile(productsFilePath, JSON.stringify({ products }));
-    res.json(products);
+    res.json({ message: "상품이 성공적으로 삭제되었습니다." });
   } catch (err) {
     console.log(err);
     res.status(500).send({ message: "서버 내부 오류" });
@@ -240,6 +240,32 @@ app.put("/hashtags/:id", async (req, res) => {
     res.json(hashtag);
   } catch (err) {
     console.log(err);
-    res.status(500).send({ message: "서버 내부 오류" });
+    res.status(500).send({ error: "서버 내부 오류" });
+  }
+});
+
+// 해시태그 삭제
+app.delete("/hashtags/:id", async (req, res) => {
+  try {
+    const data = await fs.readFile(hashtagsFilePath, "utf8");
+    const hashtags = JSON.parse(data).hashtags;
+
+    // 특정 해시태그 찾기
+    const hashtag = hashtags.find(
+      (hashtag) => hashtag.id === parseInt(req.params.id)
+    );
+
+    if (!hashtag) {
+      return res.status(404).send({ error: "해시태그 id를 찾을 수 없습니다." });
+    }
+
+    const hashtagIndex = hashtags.indexOf(hashtag);
+    hashtags.splice(hashtagIndex, 1);
+
+    await fs.writeFile(hashtagsFilePath, JSON.stringify({ hashtags }));
+    res.json({ message: "해시태그가 성공적으로 삭제되었습니다." });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send({ error: "서버 내부 오류" });
   }
 });
