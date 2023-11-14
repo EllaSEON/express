@@ -4,6 +4,7 @@ const app = express();
 const PORT = process.env.PORT || 3000; // 환경변수로 포트 관리
 const productsFilePath = "src/db/products.json";
 const hashtagsFilePath = "src/db/hashtags.json";
+const productHashtagsFilePath = "src/db/productHashtags.json";
 app.use(express.json());
 
 app.get("/", (req, res) => {
@@ -19,8 +20,8 @@ app.listen(PORT, () => {
 app.post("/products", async (req, res) => {
   try {
     // 입력값 검증
-    const { name, description, price } = req.body;
-    if (!name || !description || !price) {
+    const { name, description, price, hashtagIds } = req.body;
+    if (!name || !description || !price || !hashtagIds) {
       return res.status(400).send({ error: "모든 필드를 입력해야합니다." });
     }
     if (name.length > 15 || description.length > 50) {
@@ -41,7 +42,7 @@ app.post("/products", async (req, res) => {
     const data = await fs.readFile(productsFilePath, "utf8");
     const products = JSON.parse(data).products; //json 파싱
 
-    const addedProduct = {
+    const newProduct = {
       id: products.length + 1, // id 생성
       name: req.body.name,
       description: req.body.description,
@@ -49,11 +50,42 @@ app.post("/products", async (req, res) => {
     };
 
     // 새로운 상품 추가
-    products.push(addedProduct);
+    products.push(newProduct);
 
     // 변경된 상품 목록 파일에 저장
     await fs.writeFile(productsFilePath, JSON.stringify({ products }));
-    res.status(201).json(addedProduct);
+
+    //productHashtags.json 업데이트
+    const productHashtagsData = await fs.readFile(
+      productHashtagsFilePath,
+      "utf8"
+    );
+
+    // 맵핑 데이터 불러오기
+    const productHashtags = JSON.parse(productHashtagsData).productHashtags;
+
+    const newProductHashtag = {
+      productId: newProduct.id,
+      hashtagIds: req.body.hashtagIds,
+    };
+
+    productHashtags.push(newProductHashtag);
+
+    await fs.writeFile(
+      productHashtagsFilePath,
+      JSON.stringify({ productHashtags })
+    );
+
+    // 해시태그 데이터 가져오기
+    const hashtagsData = await fs.readFile(hashtagsFilePath, "utf8");
+    const hashtags = JSON.parse(hashtagsData).hashtags;
+
+    // newProduct 객체에 해시태그 정보 추가
+    newProduct.hashtags = newProductHashtag.hashtagIds.map((id) =>
+      hashtags.find((h) => h.id === id)
+    );
+
+    res.status(201).json(newProduct);
   } catch (err) {
     console.log(err);
     res.status(500).send({ error: "서버 내부 오류" });
@@ -63,8 +95,20 @@ app.post("/products", async (req, res) => {
 // 전체 상품 가져오기
 app.get("/products", async (req, res) => {
   try {
-    const data = await fs.readFile(productsFilePath, "utf8");
-    const products = JSON.parse(data); //json 파싱
+    // 상품 데이터 로드
+    const productsData = await fs.readFile(productsFilePath, "utf8");
+    const products = JSON.parse(productsData); //json 파싱
+
+    // 해시태그 데이터 로드
+    const hashtagsData = await fs.readFile(hashtagsFilePath, "utf8");
+    const hashtags = JSON.parse(hashtagsData);
+
+    // 각 상품에 대해 해시태그 매핑
+    const productsWithHashtags = products.map((product) => {
+      // 해당 상품의 해시태그 ID를 기반으로 해시태그 정보 찾기
+      const productHashtags = product.hashtags.map((ht) => {});
+    });
+
     res.json(products);
   } catch (err) {
     console.log(err);
@@ -75,14 +119,19 @@ app.get("/products", async (req, res) => {
 // 개별 상품 조회
 app.get("/products/:id", async (req, res) => {
   try {
+    const productId = parseInt(req.params.productId);
+
     // 파일에서 상품 목록 읽기
-    const data = await fs.readFile(productsFilePath, "utf8");
-    const products = JSON.parse(data).products; // json 파싱
+    const productData = await fs.readFile(productsFilePath, "utf8");
+    const products = JSON.parse(productData).products; // json 파싱
 
     //특정 상품 찾기
-    const product = products.find(
-      (product) => product.id === parseInt(req.params.id)
-    );
+    const product = products.find((product) => product.id === productId);
+
+    // 해시태그 데이터 로드
+    const hashtagsData = await fs.readFile(hashtagsFilePath, "utf8");
+    const hashtags = JSON.parse(hashtagsData).hashtags;
+
     res.json(product);
   } catch (err) {
     console.log(err);

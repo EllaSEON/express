@@ -1,0 +1,6 @@
+{
+  "productHashtags": [
+    { "productId": 5, "hashtagIds": [2] },
+    { "productId": 5, "hashtagIds": [1, 2] }
+  ]
+}
