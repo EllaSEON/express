@@ -1,1 +1,8 @@
-{"productHashtags":[{"productId":1,"hashtagIds":[1]},{"productId":2,"hashtagIds":[2]},{"productId":3,"hashtagIds":[1,3]},{"productId":4,"hashtagIds":[2]}]}
+{
+  "productHashtags": [
+    { "productId": 1, "hashtagIds": [1] },
+    { "productId": 2, "hashtagIds": [2] },
+    { "productId": 3, "hashtagIds": [1, 3] },
+    { "productId": 4, "hashtagIds": [2] }
+  ]
+}
