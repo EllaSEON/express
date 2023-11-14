@@ -55,26 +55,20 @@ app.post("/products", async (req, res) => {
     // 변경된 상품 목록 파일에 저장
     await fs.writeFile(productsFilePath, JSON.stringify({ products }));
 
-    //productHashtags.json 업데이트
+    // 맵핑 데이터 불러오기
     const productHashtagsData = await fs.readFile(
       productHashtagsFilePath,
       "utf8"
     );
-
-    // 맵핑 데이터 불러오기
     const productHashtags = JSON.parse(productHashtagsData).productHashtags;
 
     const newProductHashtag = {
       productId: newProduct.id,
       hashtagIds: req.body.hashtagIds,
     };
+    console.log(productHashtags);
 
     productHashtags.push(newProductHashtag);
-
-    await fs.writeFile(
-      productHashtagsFilePath,
-      JSON.stringify({ productHashtags })
-    );
 
     // 해시태그 데이터 가져오기
     const hashtagsData = await fs.readFile(hashtagsFilePath, "utf8");
@@ -84,7 +78,11 @@ app.post("/products", async (req, res) => {
     newProduct.hashtags = newProductHashtag.hashtagIds.map((id) =>
       hashtags.find((h) => h.id === id)
     );
-
+    await fs.writeFile(
+      productHashtagsFilePath,
+      JSON.stringify({ productHashtags })
+    );
+    await fs.writeFile(productsFilePath, JSON.stringify({ products }));
     res.status(201).json(newProduct);
   } catch (err) {
     console.log(err);
@@ -99,16 +97,6 @@ app.get("/products", async (req, res) => {
     const productsData = await fs.readFile(productsFilePath, "utf8");
     const products = JSON.parse(productsData); //json 파싱
 
-    // 해시태그 데이터 로드
-    const hashtagsData = await fs.readFile(hashtagsFilePath, "utf8");
-    const hashtags = JSON.parse(hashtagsData);
-
-    // 각 상품에 대해 해시태그 매핑
-    const productsWithHashtags = products.map((product) => {
-      // 해당 상품의 해시태그 ID를 기반으로 해시태그 정보 찾기
-      const productHashtags = product.hashtags.map((ht) => {});
-    });
-
     res.json(products);
   } catch (err) {
     console.log(err);
@@ -119,18 +107,15 @@ app.get("/products", async (req, res) => {
 // 개별 상품 조회
 app.get("/products/:id", async (req, res) => {
   try {
-    const productId = parseInt(req.params.productId);
+    const productId = parseInt(req.params.id);
 
     // 파일에서 상품 목록 읽기
     const productData = await fs.readFile(productsFilePath, "utf8");
     const products = JSON.parse(productData).products; // json 파싱
 
-    //특정 상품 찾기
+    console.log(products);
+    // 특정 상품 찾기
     const product = products.find((product) => product.id === productId);
-
-    // 해시태그 데이터 로드
-    const hashtagsData = await fs.readFile(hashtagsFilePath, "utf8");
-    const hashtags = JSON.parse(hashtagsData).hashtags;
 
     res.json(product);
   } catch (err) {
@@ -232,21 +217,36 @@ app.post("/hashtags", async (req, res) => {
     const hashtags = JSON.parse(data).hashtags; //json 파싱
 
     // 입력한 해시태그 명과 파일시스템의 해시태그명 중복 확인
-    // const existingHashtag = hashtags.find(
-    //   (item) => item.hashtag_name === hashtag_name
-    // );
+    let existingHashtagIndex = hashtags.findIndex(
+      (item) => item.hashtag_name === hashtag_name
+    );
 
-    const addedHashtag = {
-      id: hashtags.length + 1, // id 생성
-      hashtag_name: req.body.hashtag_name,
-    };
+    if (existingHashtagIndex !== -1) {
+      // 만약 중복되는 해시태그가 존재한다면 기존에 있던 id pk 값과 이름 덮어쓰기
+      hashtags[existingHashtagIndex].hashtag_name = hashtag_name;
 
-    // 새로운 상품 추가
-    hashtags.push(addedHashtag);
+      // 변경된 해시태그 목록 파일에 저장
+      await fs.writeFile(
+        hashtagsFilePath,
+        JSON.stringify({ hashtags: hashtags })
+      );
 
-    // 변경된 상품 목록 파일에 저장
-    await fs.writeFile(hashtagsFilePath, JSON.stringify({ hashtags }));
-    res.status(201).json(addedHashtag);
+      res.status(200).json(hashtags[existingHashtagIndex]);
+    } else {
+      // 중복되지 않는 해시태그라면 데이터 추가
+      const addedHashtag = {
+        id: hashtags.length + 1, // id 생성
+        hashtag_name: req.body.hashtag_name,
+      };
+      // 새로운 상품 추가
+      hashtags.push(addedHashtag);
+      // 변경된 상품 목록 파일에 저장
+      await fs.writeFile(
+        hashtagsFilePath,
+        JSON.stringify({ hashtags: hashtags })
+      );
+      res.status(201).json(addedHashtag);
+    }
   } catch (err) {
     console.log(err);
     res.status(500).send({ message: "서버 내부 오류" });

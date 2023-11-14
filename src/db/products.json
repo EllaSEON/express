@@ -2,33 +2,34 @@
   "products": [
     {
       "id": 1,
-      "name": "오리털 패딩",
+      "name": "양털 패딩",
       "description": "따뜻한 겨울 패딩",
-      "price": 49000
+      "price": 59000,
+      "hashtags": [{ "id": 1, "hashtag_name": "겨울옷" }]
     },
     {
       "id": 2,
-      "name": "호피무늬 나시",
-      "description": "개성있는 여름 나시",
-      "price": 7000
+      "name": "호피 나시",
+      "description": "여름철 이너웨어용",
+      "price": 9000,
+      "hashtags": [{ "id": 2, "hashtag_name": "여름옷" }]
     },
     {
       "id": 3,
-      "name": "발열내의",
-      "description": "따뜻한 겨울용 내복",
-      "price": 12000
+      "name": "오리털 코트",
+      "description": "따뜻한 오리털 겨울 코트",
+      "price": 90000,
+      "hashtags": [
+        { "id": 1, "hashtag_name": "겨울옷" },
+        { "id": 3, "hashtag_name": "방한용품" }
+      ]
     },
     {
       "id": 4,
       "name": "비키니 수영복",
       "description": "바닷가에서 핫하게 입을 수 있는 수영복",
-      "price": 25000
-    },
-    {
-      "id": 5,
-      "name": "가죽부츠",
-      "description": "따뜻합니다.",
-      "price": 70000
+      "price": 25000,
+      "hashtags": [{ "id": 2, "hashtag_name": "여름옷" }]
     }
   ]
 }
