@@ -1,9 +1,13 @@
 const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 3000; // 환경변수로 포트 관리
-const productsFilePath = "src/db/products.json";
-const hashtagsFilePath = "src/db/hashtags.json";
-const productHashtagsFilePath = "src/db/productHashtags.json";
+
+const FilePath = {
+  products: "src/db/products.json",
+  hashtags: "src/db/hashtags.json",
+  productHashtags: "src/db/productHashtags.json",
+};
+
 app.use(express.json());
 
 const { readDB, writeDB } = require("./dbController.js");
@@ -39,9 +43,7 @@ app.post("/products", async (req, res) => {
       return res.status(400).send({ error: "잘못된 데이터 타입입니다." });
     }
 
-    // 기존 상품 목록 읽기
-    const productData = readDB(productsFilePath);
-    const products = productData.products;
+    const products = readDB(FilePath.products).products;
 
     const newProduct = {
       id: products.length + 1, // id 생성
@@ -54,11 +56,10 @@ app.post("/products", async (req, res) => {
     products.push(newProduct);
 
     // 변경된 상품 목록 파일에 저장
-    writeDB(productsFilePath, { products: products });
+    writeDB(FilePath.products, { products: products });
 
     // 맵핑 데이터 불러오기
-    const productHashtagsData = readDB(productHashtagsFilePath);
-    const productHashtags = productHashtagsData.productHashtags;
+    const productHashtags = readDB(FilePath.productHashtags).productHashtags;
 
     const newProductHashtag = {
       productId: newProduct.id,
@@ -68,15 +69,14 @@ app.post("/products", async (req, res) => {
     productHashtags.push(newProductHashtag);
 
     // 해시태그 데이터 가져오기
-    const hashtagsData = readDB(hashtagsFilePath);
-    const hashtags = hashtagsData.hashtags;
+    const hashtags = readDB(FilePath.hashtags).hashtags;
 
     // newProduct 객체에 해시태그 정보 추가
     newProduct.hashtags = newProductHashtag.hashtagIds.map((id) =>
       hashtags.find((h) => h.id === id)
     );
-    writeDB(productHashtagsFilePath, { productHashtags: productHashtags });
-    writeDB(productsFilePath, { products: products });
+    writeDB(FilePath.productHashtags, { productHashtags: productHashtags });
+    writeDB(FilePath.products, { products: products });
     res.status(201).json(newProduct);
   } catch (err) {
     console.log(err);
@@ -88,8 +88,7 @@ app.post("/products", async (req, res) => {
 app.get("/products", async (req, res) => {
   try {
     // 상품 데이터 로드
-    const productData = readDB(productsFilePath);
-    const products = productData.products;
+    const products = readDB(FilePath.products).products;
 
     res.json(products);
   } catch (err) {
@@ -104,8 +103,7 @@ app.get("/products/:id", async (req, res) => {
     const productId = parseInt(req.params.id);
 
     // 파일에서 상품 목록 읽기
-    const productData = readDB(productsFilePath);
-    const products = productData.products;
+    const products = readDB(FilePath.products).products;
 
     // 특정 상품 찾기
     const product = products.find((product) => product.id === productId);
@@ -141,9 +139,7 @@ app.put("/products/:id", async (req, res) => {
       return res.status(400).send({ error: "가격 범위를 초과했습니다." });
     }
 
-    // 파일에서 상품 목록 읽기
-    const productData = readDB(productsFilePath);
-    const products = productData.products;
+    const products = readDB(FilePath.products).products;
 
     //특정 상품 찾기
     const product = products.find(
@@ -159,7 +155,7 @@ app.put("/products/:id", async (req, res) => {
     if (description !== undefined) product.description = description;
     if (price !== undefined) product.price = price;
 
-    writeDB(productsFilePath, { products: products });
+    writeDB(FilePath.products, { products: products });
     res.json(products);
   } catch (err) {
     console.log(err);
@@ -170,8 +166,7 @@ app.put("/products/:id", async (req, res) => {
 // 상품 삭제
 app.delete("/products/:id", async (req, res) => {
   try {
-    const productData = readDB(productsFilePath);
-    const products = productData.products;
+    const products = readDB(FilePath.products).products;
 
     //특정 상품 찾기
     const product = products.find(
@@ -185,7 +180,7 @@ app.delete("/products/:id", async (req, res) => {
     const productIndex = products.indexOf(product);
     products.splice(productIndex, 1);
 
-    writeDB(productsFilePath, { products: products });
+    writeDB(FilePath.products, { products: products });
     res.json({ message: "상품이 성공적으로 삭제되었습니다." });
   } catch (err) {
     console.log(err);
@@ -209,8 +204,7 @@ app.post("/hashtags", async (req, res) => {
     }
 
     // 기존 해시태그 목록 읽기
-    const hashtagData = readDB(hashtagsFilePath);
-    const hashtags = hashtagData.hashtags;
+    const hashtags = readDB(FilePath.hashtags).hashtags;
 
     const addedHashtag = {
       id: hashtags.length + 1, // id 생성
@@ -220,7 +214,7 @@ app.post("/hashtags", async (req, res) => {
     hashtags.push(addedHashtag);
 
     // 변경된 상품 목록 파일에 저장
-    writeDB(hashtagsFilePath, { hashtags: hashtags });
+    writeDB(FilePath.hashtags, { hashtags: hashtags });
     res.status(201).json(addedHashtag);
   } catch (err) {
     console.log(err);
@@ -246,8 +240,7 @@ app.put("/hashtags/:id", async (req, res) => {
     }
 
     // 기존 해시태그 목록 읽기
-    const hashtagData = readDB(hashtagsFilePath);
-    const hashtags = hashtagData.hashtags; //json 파싱
+    const hashtags = readDB(FilePath.hashtags).hashtags;
 
     // 특정 해시태그 찾기
     const hashtag = hashtags.find(
@@ -260,7 +253,7 @@ app.put("/hashtags/:id", async (req, res) => {
 
     hashtag.hashtag_name = req.body.hashtag_name;
 
-    writeDB(hashtagsFilePath, { hashtags: hashtags });
+    writeDB(FilePath.hashtags, { hashtags: hashtags });
     res.json(hashtag);
   } catch (err) {
     console.log(err);
@@ -271,13 +264,14 @@ app.put("/hashtags/:id", async (req, res) => {
 // 해시태그 삭제
 app.delete("/hashtags/:id", async (req, res) => {
   try {
-    const hashtagData = readDB(hashtagsFilePath);
-    const hashtags = hashtagData.hashtags;
+    const hashtags = readDB(FilePath.hashtags).hashtags;
+    console.log(hashtags);
 
     // 특정 해시태그 찾기
     const hashtag = hashtags.find(
       (hashtag) => hashtag.id === parseInt(req.params.id)
     );
+    console.log(hashtag);
 
     if (!hashtag) {
       return res.status(404).send({ error: "해시태그 id를 찾을 수 없습니다." });
@@ -286,7 +280,7 @@ app.delete("/hashtags/:id", async (req, res) => {
     const hashtagIndex = hashtags.indexOf(hashtag);
     hashtags.splice(hashtagIndex, 1);
 
-    writeDB(hashtagsFilePath, { hashtags: hashtags });
+    writeDB(FilePath.hashtags, { hashtags: hashtags });
     res.json({ message: "해시태그가 성공적으로 삭제되었습니다." });
   } catch (err) {
     console.log(err);
