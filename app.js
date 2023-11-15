@@ -47,9 +47,9 @@ app.post("/products", (req, res) => {
 
     const newProduct = {
       id: products.length + 1, // id 생성
-      name: req.body.name,
-      description: req.body.description,
-      price: req.body.price,
+      name,
+      description,
+      price,
     };
 
     // 새로운 상품 추가
@@ -63,7 +63,7 @@ app.post("/products", (req, res) => {
 
     const newProductHashtag = {
       productId: newProduct.id,
-      hashtagIds: req.body.hashtagIds,
+      hashtagIds,
     };
 
     productHashtags.push(newProductHashtag);
