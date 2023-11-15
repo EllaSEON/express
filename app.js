@@ -22,7 +22,7 @@ app.listen(PORT, () => {
 });
 
 // 상품 업로드
-app.post("/products", async (req, res) => {
+app.post("/products", (req, res) => {
   try {
     // 입력값 검증
     const { name, description, price, hashtagIds } = req.body;
@@ -85,7 +85,7 @@ app.post("/products", async (req, res) => {
 });
 
 // 전체 상품 가져오기
-app.get("/products", async (req, res) => {
+app.get("/products", (req, res) => {
   try {
     // 상품 데이터 로드
     const products = readDB(FilePath.products).products;
@@ -98,7 +98,7 @@ app.get("/products", async (req, res) => {
 });
 
 // 개별 상품 조회
-app.get("/products/:id", async (req, res) => {
+app.get("/products/:id", (req, res) => {
   try {
     const productId = parseInt(req.params.id);
 
@@ -116,7 +116,7 @@ app.get("/products/:id", async (req, res) => {
 });
 
 // 상품 수정
-app.put("/products/:id", async (req, res) => {
+app.put("/products/:id", (req, res) => {
   try {
     // 입력값 검증
     const { name, description, price } = req.body;
@@ -164,7 +164,7 @@ app.put("/products/:id", async (req, res) => {
 });
 
 // 상품 삭제
-app.delete("/products/:id", async (req, res) => {
+app.delete("/products/:id", (req, res) => {
   try {
     const products = readDB(FilePath.products).products;
 
@@ -188,19 +188,29 @@ app.delete("/products/:id", async (req, res) => {
   }
 });
 
+// 해시태그 validate 함수
+const validateHashtags = ({ hashtag_name }) => {
+  const errors = [];
+  if (!hashtag_name) {
+    errors.push({ error: "해시태그명을 입력하세요" });
+  }
+  if (hashtag_name.length > 15) {
+    errors.push({ error: "글자수 제한을 초과했습니다." });
+  }
+  if (typeof hashtag_name !== "string") {
+    errors.push({ error: "잘못된 데이터 타입입니다." });
+  }
+  return errors;
+};
+
 // 해시태그 등록
-app.post("/hashtags", async (req, res) => {
+app.post("/hashtags", (req, res) => {
   try {
     const { hashtag_name } = req.body;
 
-    if (!hashtag_name) {
-      return res.status(400).send({ error: "해시태그명을 입력하세요" });
-    }
-    if (hashtag_name.length > 15) {
-      return res.status(400).send({ error: "글자수 제한을 초과했습니다." });
-    }
-    if (typeof hashtag_name !== "string") {
-      return res.status(400).send({ error: "잘못된 데이터 타입입니다." });
+    const error = validateHashtags({ hashtag_name });
+    if (error) {
+      return res.status(400).send(error[0]);
     }
 
     // 기존 해시태그 목록 읽기
@@ -223,24 +233,15 @@ app.post("/hashtags", async (req, res) => {
 });
 
 // 해시태그 수정
-app.put("/hashtags/:id", async (req, res) => {
+app.put("/hashtags/:id", (req, res) => {
   try {
-    const { hashtag_name } = req.body;
-
-    if (!hashtag_name) {
-      return res.status(400).send({ error: "해시태그명을 입력하세요" });
-    }
-    if (hashtag_name.length > 15) {
-      return res.status(400).send({ error: "글자수 제한을 초과했습니다." });
-    }
-
-    console.log(typeof hashtag_name);
-    if (typeof hashtag_name !== "string") {
-      return res.status(400).send({ error: "잘못된 데이터 타입입니다." });
-    }
-
-    // 기존 해시태그 목록 읽기
     const hashtags = readDB(FilePath.hashtags).hashtags;
+
+    const { hashtag_name } = req.body;
+    const error = validateHashtags({ hashtag_name });
+    if (error) {
+      res.status(400).send(error[0]);
+    }
 
     // 특정 해시태그 찾기
     const hashtag = hashtags.find(
@@ -262,7 +263,7 @@ app.put("/hashtags/:id", async (req, res) => {
 });
 
 // 해시태그 삭제
-app.delete("/hashtags/:id", async (req, res) => {
+app.delete("/hashtags/:id", (req, res) => {
   try {
     const hashtags = readDB(FilePath.hashtags).hashtags;
     console.log(hashtags);
